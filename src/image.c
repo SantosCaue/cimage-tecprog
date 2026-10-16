@@ -58,14 +58,14 @@ int img_consul_canal(const Image *img){
     return img->canal;
 }
 
-ImgStatus img_escrever_pixel(Image *img,int x,int y,const unsigned char bytes[]){
+ImgStatus img_escrever_pixel(Image *img,int linha,int coluna,const unsigned char bytes[]){
     if((img==NULL)||(bytes==NULL)){
         return IMG_PONTEIRO_NULL;
     }
-    if((x>=img->largura||y>=img->altura)||(x<0 || y<0)){
+    if((coluna>=img->largura||linha>=img->altura)||(linha<0 || coluna<0)){
         return IMG_FORA_DA_IMAGEM;
     }
-    size_t posi= (size_t)img->canal * x +(size_t)img->largura * img->canal * y;
+    size_t posi = ((size_t)linha * img->largura + coluna) * img->canal;
 
     for(int i=0;i<img->canal;i++){
         img->lista[i+posi]=bytes[i];
@@ -74,14 +74,14 @@ ImgStatus img_escrever_pixel(Image *img,int x,int y,const unsigned char bytes[])
     return IMG_SUCESSO;
 }
 
-ImgStatus img_ler_pixel(const Image *img,int x, int y,unsigned char bytes[]){
+ImgStatus img_ler_pixel(const Image *img,int linha, int coluna ,unsigned char bytes[]){
     if((img==NULL)||(bytes==NULL)){
         return IMG_PONTEIRO_NULL;
     }
-    if((x>=img->largura||y>=img->altura)||(x<0 || y<0)){
+    if((coluna>=img->largura||linha>=img->altura)||(linha<0 || coluna<0)){
         return IMG_FORA_DA_IMAGEM;
     }
-    size_t posi= (size_t)img->canal * x +(size_t)img->largura * img->canal * y;
+    size_t posi = ((size_t)linha * img->largura + coluna) * img->canal;
     for(int i=0;i<img->canal;i++){
         bytes[i]=img->lista[posi+i];
     }
