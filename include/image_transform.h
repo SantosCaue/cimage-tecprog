@@ -3,9 +3,9 @@
 
 #include "image.h"
 
-Image *cortar (const image *img, int x_inicial, int y_inicial, int altura, int largura, ImgStatus *status);
+Image *cortar (const Image *img, int x_inicial, int y_inicial, int altura, int largura, ImgStatus *status);
 
-Image *esperlhar_vertical (const Image *img, ImgStatus *status);
+Image *espelhar_vertical (const Image *img, ImgStatus *status);
 
 Image *espelhar_horizontal (const Image *img, ImgStatus *status);
 
