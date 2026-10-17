@@ -1,13 +1,13 @@
 #include "image_transform.h"
 #include <stdlib.h>
 
-Image *cortar (const Image *img, int x_inicial, int y_inicial, int altura, int largura, ImgStatus *status){
+Image *cortar (const Image *img, int linha_inicial, int coluna_inicial, int altura, int largura, ImgStatus *status){
     if (img == NULL) {
         if (status != NULL) *status = IMG_PONTEIRO_NULL; //[cite: 9]
         return NULL;
     }
     
-    if (x_inicial < 0 || y_inicial < 0 || largura <= 0 || altura <= 0 || x_inicial + largura > img_consul_largura(img) || y_inicial + altura > img_consul_altura(img)){
+    if (linha_inicial < 0 || coluna_inicial < 0 || largura <= 0 || altura <= 0 || linha_inicial + altura > img_consul_altura(img) || coluna_inicial + largura > img_consul_largura(img)){
         if (status != NULL) *status = IMG_FORA_DA_IMAGEM;
         return NULL;      
     }
@@ -23,7 +23,7 @@ Image *cortar (const Image *img, int x_inicial, int y_inicial, int altura, int l
     for(int i = 0; i < altura; i++)
         for(int j = 0; j < largura; j++){
 
-            img_ler_pixel(img, y_inicial + i, x_inicial + j, bytes);
+            img_ler_pixel(img, linha_inicial + i, coluna_inicial + j, bytes);
             img_escrever_pixel(img_cortada, i, j, bytes);
         }
 
