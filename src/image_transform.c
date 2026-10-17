@@ -92,4 +92,25 @@ Image *rotacionar (const Image *img, ImgStatus *status){
         if (status != NULL) *status = IMG_PONTEIRO_NULL; //[cite: 9]
         return NULL;
     }
+
+    int largura = img_consul_largura(img);
+    int altura = img_consul_altura(img);
+    int canal = img_consul_canal(img);
+
+    Image *img_rotacionada = img_criar_imagem(altura, largura, canal);
+
+    if(img_rotacionada == NULL){
+        if(status != NULL)  *status = IMG_SEM_MEMORIA;
+        return NULL; 
+    }
+    unsigned char bytes[3];
+
+    for(int i = 0; i < largura; i++)
+        for(int j = 0; j < altura; j++){
+            img_ler_pixel(img, altura - j - 1, i, bytes);
+            img_escrever_pixel(img_rotacionada, i, j, bytes);
+        }
+    
+        if(status != NULL) *status = IMG_SUCESSO;
+        return img_rotacionada;
 }
