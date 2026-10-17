@@ -1,7 +1,7 @@
 #ifndef IMAGE_TRANSFORM_H
 #define IMAGE_TRANSFORM_H
-
 #include "image.h"
+
 /* Finalidade: Faz cópia de uma região específica da imagem original.
 *  Parâmetros: 
 *   - img: ponteiro para imagem original.
