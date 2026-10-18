@@ -3,7 +3,7 @@ NAME      := imgedit
 
 CC        ?= gcc
 AR        ?= ar
-CFLAGS    := -std=c11 -Wall -Wextra -Wpedantic -O2 -Iinclude
+CFLAGS    := -std=c11 -Wall -Wextra -Wpedantic -O2 -Iinclude -Ipublic_library
 LDLIBS    := -lm
 
 SRC_DIR   := src
@@ -77,7 +77,7 @@ $(BIN_DIR)/%: tests/%.c $(STATIC_LIB)
 
 # Debug 
 
-debug: CFLAGS := -std=c11 -Wall -Wextra -Wpedantic -g -O0 -Iinclude -fsanitize=address,undefined
+debug: CFLAGS := -std=c11 -Wall -Wextra -Wpedantic -g -O0 -Iinclude -Ipublic_library -fsanitize=address,undefined
 debug: LDLIBS += -fsanitize=address,undefined
 debug: clean static
 
