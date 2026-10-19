@@ -28,9 +28,9 @@ EXAMPLE_BINS := $(patsubst examples/%.c,$(BIN_DIR)/%,$(EXAMPLE_SRCS))
 TEST_SRCS := $(wildcard tests/*.c)
 TEST_BINS := $(patsubst tests/%.c,$(BIN_DIR)/%,$(TEST_SRCS))
 
-.PHONY: all static shared examples test debug doc install uninstall clean clean-objs
+.PHONY: all static shared examples run run-shared test test-debug debug doc install uninstall clean clean-objs
 
-all: static
+all: static examples
 
 #  Bibliotecas 
 
@@ -59,6 +59,21 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 
 # Exemplos e testes 
 
+# Argumentos padrao do programa de exemplo (troque com: make run ARGS="a.png b.png sobel")
+ARGS ?= examples/exemplo.png build/saida.png blur 2
+PROGRAMA := $(BIN_DIR)/programa
+
+# Compila (se necessario) e executa a aplicacao ligada a biblioteca ESTATICA
+run: examples
+	$(PROGRAMA) $(ARGS)
+
+# Compila a aplicacao ligada a biblioteca DINAMICA e a executa
+# (LD_LIBRARY_PATH faz o sistema achar libcimage.so em tempo de execucao)
+run-shared: shared
+	@mkdir -p $(BIN_DIR)
+	$(CC) -std=c11 -Wall -Wextra -Wpedantic -O2 -Iinclude -Ipublic_library examples/programa.c -L$(BUILD_DIR) -lcimage $(LDLIBS) -o $(PROGRAMA)_din
+	LD_LIBRARY_PATH=$(BUILD_DIR) $(PROGRAMA)_din $(ARGS)
+
 examples: $(EXAMPLE_BINS)
 
 test: $(TEST_BINS)
@@ -76,6 +91,12 @@ $(BIN_DIR)/%: tests/%.c $(STATIC_LIB)
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) $< $(STATIC_LIB) $(LDLIBS) -o $@
 
+# Testes com sanitizers (compila tudo com AddressSanitizer e UBSan e roda os testes)
+test-debug: CFLAGS := -std=c11 -Wall -Wextra -Wpedantic -g -O0 -Iinclude -Ipublic_library -fsanitize=address,undefined
+test-debug: LDLIBS += -fsanitize=address,undefined
+test-debug: clean test
+	@$(MAKE) --no-print-directory clean
+
 # Debug 
 
 debug: CFLAGS := -std=c11 -Wall -Wextra -Wpedantic -g -O0 -Iinclude -Ipublic_library -fsanitize=address,undefined
@@ -90,13 +111,14 @@ doc:
 
 # Instalação 
 
-install: static
+install: static shared
 	install -d $(PREFIX)/lib $(PREFIX)/include/$(NAME)
 	install -m 644 $(STATIC_LIB) $(PREFIX)/lib/
+	install -m 755 $(SHARED_LIB) $(PREFIX)/lib/
 	install -m 644 $(INC_DIR)/*.h $(PREFIX)/include/$(NAME)/
 
 uninstall:
-	rm -f $(PREFIX)/lib/lib$(NAME).a
+	rm -f $(PREFIX)/lib/lib$(NAME).a $(PREFIX)/lib/lib$(NAME).so
 	rm -rf $(PREFIX)/include/$(NAME)
 
 #  Limpeza 

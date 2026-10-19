@@ -1,20 +1,23 @@
-## cimage-tecprog
+# cimage-tecprog
 
 Biblioteca modular em C para representação, transformação, processamento e álgebra matricial sobre imagens digitais (em tons de cinza ou RGB).
 
-Desenvolvido no contexto da disciplina **MAC0216 - Técnicas de Programação** (IME-USP).
+Desenvolvida no contexto da disciplina **MAC0216 - Técnicas de Programação** (IME-USP).
 
 ---
 
 ## Sumário
 
-- [Visão Geral](#-visão-geral)
-- [Estrutura do Repositório](#-estrutura-do-repositório)
-- [Módulos da Biblioteca](#-módulos-da-biblioteca)
-- [Compilação e Uso](#-compilação-e-uso)
-- [Testes](#-testes)
-- [Documentação (Doxygen)](#-documentação-doxygen)
-- [Padrões de Nomenclatura](#-padrões-de-nomenclatura)
+- [Visão Geral](#visão-geral)
+- [Estrutura do Repositório](#estrutura-do-repositório)
+- [Módulos da Biblioteca](#módulos-da-biblioteca)
+- [Compilação e Uso](#compilação-e-uso)
+- [Programa de Exemplo](#programa-de-exemplo)
+- [Testes](#testes)
+- [Instalação](#instalação)
+- [Documentação (Doxygen)](#documentação-doxygen)
+- [Alvos do Makefile](#alvos-do-makefile)
+- [Padrões de Nomenclatura](#padrões-de-nomenclatura)
 
 ---
 
@@ -30,31 +33,39 @@ As imagens podem ter 1 canal (tons de cinza) ou 3 canais (RGB). Cada componente 
 
 ```text
 .
-├── include/              # Cabeçalhos públicos (.h)
-│   ├── filtros.h         # Filtros espaciais (convolução, blur, sobel, etc.)
-│   ├── image.h           # Tipo Image e manipulação básica de pixels
-│   ├── image_convert.h   # Conversão entre Image e Matriz
-│   ├── image_io.h        # Carregamento e salvamento de arquivos
-│   ├── image_transform.h # Transformações espaciais (corte, espelho, rotação)
-│   └── matriz.h          # Tipo Matriz e operações algébricas lineares
-├── src/                  # Implementações em C (.c)
+├── Doxyfile                # Configuração do Doxygen para geração de docs
+├── Makefile                # Automação de compilação, testes, exemplos e instalação
+├── README.md               # Documentação principal do projeto
+├── examples/               # Aplicações de exemplo que usam a biblioteca
+│   └── programa.c          # Programa de linha de comando (aplica filtros a uma imagem)
+├── include/                # Cabeçalhos públicos (.h)
+│   ├── filtros.h           # Filtros espaciais (convolução, blur, sobel, etc.)
+│   ├── image.h             # Tipo Image e manipulação básica de pixels
+│   ├── image_convert.h     # Conversão entre Image e Matriz
+│   ├── image_io.h          # Carregamento e salvamento de arquivos
+│   ├── image_transform.h   # Transformações espaciais (corte, espelho, rotação)
+│   └── matriz.h            # Tipo Matriz e operações algébricas lineares
+├── public_library/         # Bibliotecas públicas de terceiros (stb)
+│   ├── stb_image.h         # Decodificação de arquivos de imagem (PNG, JPG, BMP)
+│   └── stb_image_write.h   # Codificação e escrita em PNG
+├── src/                    # Implementações em C (.c)
 │   ├── filtros.c
 │   ├── image.c
 │   ├── image_convert.c
-│   ├── image_internal.h  # Struct Image concreta (visível apenas para o núcleo)
+│   ├── image_internal.h    # Struct Image concreta (visível apenas para o núcleo)
 │   ├── image_io.c
 │   ├── image_transform.c
 │   └── matriz.c
-├── public_library/       # Bibliotecas públicas de terceiros (stb_image)
-│   ├── stb_image.h       # Decodificação de arquivos de imagem (PNG, JPG, BMP)
-│   └── stb_image_write.h # Codificação e escrita em PNG
-├── tests/                # Suíte de testes automatizados
-│   ├── test_filtros.c    # Testes unitários do módulo de filtros
-│   └── test_transform.c  # Testes unitários do módulo de transformações
-├── Doxyfile              # Configuração do Doxygen para geração de docs
-├── Makefile              # Automação de compilação, testes e instalação
-└── README.md             # Documentação principal do projeto
+└── tests/                  # Suíte de testes automatizados
+    ├── test_convert.c      # Testes do módulo de conversão
+    ├── test_filtros.c      # Testes do módulo de filtros
+    ├── test_image.c        # Testes do tipo Image
+    ├── test_io.c           # Testes de carregamento e salvamento
+    ├── test_matriz.c       # Testes do módulo de matrizes
+    └── test_transform.c    # Testes do módulo de transformações
 ```
+
+Os artefatos gerados pelo `make` ficam em `build/` (objetos em `build/obj/`, binários em `build/bin/`) e a documentação em `docs/`.
 
 ---
 
@@ -101,32 +112,76 @@ Processamento sobre matrizes de canal único:
 
 ## Compilação e Uso
 
-O projeto requer um compilador com suporte a **C11** (como `gcc` ou `clang`) e o utilitário `make`.
+O projeto requer um compilador com suporte a **C11** (como `gcc` ou `clang`) e o utilitário `make`. O compilador e o arquivador podem ser trocados pelas variáveis `CC` e `AR` (por exemplo, `make CC=clang`).
 
-### Gerar a biblioteca estática (`libcimage.a`)
+### Compilação padrão (biblioteca estática + exemplos)
 ```bash
 make
-# ou:
+# equivale a:
+make all
+```
+Compila a biblioteca estática em `build/libcimage.a` e os programas de `examples/` em `build/bin/`.
+
+### Apenas a biblioteca estática (`libcimage.a`)
+```bash
 make static
 ```
-A biblioteca será gerada em `build/libcimage.a`.
 
-### Gerar a biblioteca dinâmica (`libcimage.so`)
+### Biblioteca dinâmica (`libcimage.so`)
 ```bash
 make shared
 ```
-A biblioteca compartilhada será gerada em `build/libcimage.so`.
+A biblioteca compartilhada será gerada em `build/libcimage.so`. Os objetos são recompilados com `-fPIC` automaticamente.
 
 ### Modo de depuração (Debug com Sanitizers)
-Compila com `-g -O0` e habilita AddressSanitizer e UndefinedBehaviorSanitizer:
+Compila a biblioteca estática com `-g -O0` e habilita AddressSanitizer e UndefinedBehaviorSanitizer:
 ```bash
 make debug
 ```
 
 ### Limpeza de artefatos
 ```bash
-make clean
+make clean        # remove build/ e docs/
+make clean-objs   # remove apenas os objetos (build/obj/)
 ```
+
+### Usando a biblioteca no seu código
+Compilando diretamente a partir do repositório (ligação estática):
+```bash
+gcc -std=c11 -Iinclude meu_programa.c build/libcimage.a -lm -o meu_programa
+```
+
+Ou com a biblioteca dinâmica:
+```bash
+gcc -std=c11 -Iinclude meu_programa.c -Lbuild -lcimage -lm -o meu_programa
+LD_LIBRARY_PATH=build ./meu_programa
+```
+
+---
+
+## Programa de Exemplo
+
+O diretório `examples/` contém `programa.c`, uma aplicação de linha de comando que usa a biblioteca. Todo arquivo `.c` em `examples/` é compilado automaticamente pelo `make` e gera um binário em `build/bin/`.
+
+### Executar com a biblioteca estática
+```bash
+make run
+```
+Compila (se necessário) e executa o programa com os argumentos padrão:
+`examples/exemplo.png build/saida.png blur 2`.
+
+Para usar outros argumentos, passe `ARGS`:
+```bash
+make run ARGS="entrada.png build/saida.png sobel"
+```
+
+> O arquivo `examples/exemplo.png` não faz parte do repositório. Forneça uma imagem sua via `ARGS` ou coloque uma imagem com esse nome em `examples/`.
+
+### Executar com a biblioteca dinâmica
+```bash
+make run-shared
+```
+Gera `libcimage.so`, liga o programa dinamicamente (binário `build/bin/programa_din`) e o executa com `LD_LIBRARY_PATH=build`, para que o sistema encontre a biblioteca em tempo de execução. Também aceita `ARGS`.
 
 ---
 
@@ -138,7 +193,56 @@ Para compilar e rodar a suíte de testes automatizados:
 make test
 ```
 
-Os binários dos testes são gerados em `build/bin/` e executados em sequência.
+Cada arquivo de `tests/` gera um binário em `build/bin/`; os testes são executados em sequência e a execução é interrompida no primeiro que falhar. Ao final, se tudo passar, é exibida a mensagem `Todos os testes passaram.`
+
+| Arquivo | Módulo testado |
+|---|---|
+| `test_image.c` | `Image` |
+| `test_matriz.c` | `Matriz` |
+| `test_transform.c` | Transformações espaciais |
+| `test_filtros.c` | Filtros digitais |
+| `test_convert.c` | Conversão `Image` ↔ `Matriz` |
+| `test_io.c` | Carregamento e salvamento de arquivos |
+
+### Testes com sanitizers
+```bash
+make test-debug
+```
+Recompila tudo com `-g -O0` e AddressSanitizer + UBSan, roda os testes e limpa `build/` e `docs/` ao final. Útil para detectar vazamentos de memória, acessos fora dos limites e comportamento indefinido.
+
+---
+
+## Instalação
+
+Para instalar as bibliotecas (estática e dinâmica) e os cabeçalhos no sistema:
+
+```bash
+sudo make install
+```
+
+Por padrão, a instalação usa o prefixo `/usr/local`:
+
+| Item | Destino |
+|---|---|
+| `libcimage.a`, `libcimage.so` | `$(PREFIX)/lib/` |
+| Cabeçalhos `include/*.h` | `$(PREFIX)/include/cimage/` |
+
+Para instalar em outro local (sem `sudo`, por exemplo):
+```bash
+make install PREFIX=$HOME/.local
+```
+
+Depois de instalada, a biblioteca pode ser usada assim:
+```bash
+gcc meu_programa.c -I$(PREFIX)/include/cimage -L$(PREFIX)/lib -lcimage -lm -o meu_programa
+```
+
+> Se instalar em um prefixo fora dos caminhos padrão do sistema, pode ser necessário incluir `$(PREFIX)/lib` em `LD_LIBRARY_PATH` (ou rodar `sudo ldconfig`, no caso de `/usr/local`) para usar a versão dinâmica.
+
+Para remover:
+```bash
+sudo make uninstall
+```
 
 ---
 
@@ -155,6 +259,38 @@ O projeto está integralmente documentado no formato Doxygen. Para gerar o relat
    ```bash
    xdg-open docs/html/index.html
    ```
+
+---
+
+## Alvos do Makefile
+
+| Alvo | Descrição |
+|---|---|
+| `make` / `make all` | Biblioteca estática + programas de exemplo |
+| `make static` | Gera `build/libcimage.a` |
+| `make shared` | Gera `build/libcimage.so` (com `-fPIC`) |
+| `make examples` | Compila os programas de `examples/` em `build/bin/` |
+| `make run` | Executa o exemplo ligado à biblioteca estática (aceita `ARGS="..."`) |
+| `make run-shared` | Executa o exemplo ligado à biblioteca dinâmica (aceita `ARGS="..."`) |
+| `make test` | Compila e executa todos os testes |
+| `make test-debug` | Testes com AddressSanitizer e UBSan (limpa `build/` e `docs/` ao final) |
+| `make debug` | Biblioteca estática em modo debug com sanitizers |
+| `make doc` | Gera a documentação HTML com Doxygen em `docs/html/` |
+| `make install` | Instala bibliotecas e cabeçalhos em `$(PREFIX)` (padrão `/usr/local`) |
+| `make uninstall` | Remove os arquivos instalados |
+| `make clean` | Remove `build/` e `docs/` |
+| `make clean-objs` | Remove apenas `build/obj/` |
+
+### Variáveis configuráveis
+
+| Variável | Padrão | Uso |
+|---|---|---|
+| `CC` | `gcc` | Compilador C |
+| `AR` | `ar` | Arquivador para a biblioteca estática |
+| `PREFIX` | `/usr/local` | Destino de `make install` / `make uninstall` |
+| `ARGS` | `examples/exemplo.png build/saida.png blur 2` | Argumentos do programa de exemplo em `make run` / `make run-shared` |
+
+Todos os alvos compilam com `-std=c11 -Wall -Wextra -Wpedantic`. Os modos normais usam `-O2`; os modos de depuração usam `-g -O0` com sanitizers.
 
 ---
 
