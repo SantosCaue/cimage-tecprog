@@ -1,4 +1,4 @@
-# cimage-tecprog
+## cimage-tecprog
 
 Biblioteca modular em C para representação, transformação, processamento e álgebra matricial sobre imagens digitais (em tons de cinza ou RGB).
 
