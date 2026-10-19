@@ -9,6 +9,7 @@ LDLIBS    := -lm
 SRC_DIR   := src
 INC_DIR   := include
 BUILD_DIR := build
+DOCS_DIR  := docs
 OBJ_DIR   := $(BUILD_DIR)/obj
 BIN_DIR   := $(BUILD_DIR)/bin
 
@@ -27,7 +28,7 @@ EXAMPLE_BINS := $(patsubst examples/%.c,$(BIN_DIR)/%,$(EXAMPLE_SRCS))
 TEST_SRCS := $(wildcard tests/*.c)
 TEST_BINS := $(patsubst tests/%.c,$(BIN_DIR)/%,$(TEST_SRCS))
 
-.PHONY: all static shared examples test debug install uninstall clean
+.PHONY: all static shared examples test debug doc install uninstall clean clean-objs
 
 all: static
 
@@ -81,6 +82,12 @@ debug: CFLAGS := -std=c11 -Wall -Wextra -Wpedantic -g -O0 -Iinclude -Ipublic_lib
 debug: LDLIBS += -fsanitize=address,undefined
 debug: clean static
 
+# Documentação 
+
+doc:
+	doxygen Doxyfile
+	@echo "Documentação gerada em $(DOCS_DIR)/html/index.html"
+
 # Instalação 
 
 install: static
@@ -98,4 +105,4 @@ clean-objs:
 	rm -rf $(OBJ_DIR)
 
 clean:
-	rm -rf $(BUILD_DIR)
+	rm -rf $(BUILD_DIR) $(DOCS_DIR)

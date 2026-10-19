@@ -1,0 +1,24 @@
+# Diretórios de compilação e binários
+build/
+bin/
+obj/
+
+# Artefatos de compilação
+*.o
+*.a
+*.so
+*.d
+
+# Binários de testes soltos na raiz
+test_transform
+test_filtros
+
+# Documentação gerada pelo Doxygen
+docs/
+
+# Arquivos temporários e de editores
+*.swp
+*~
+.vscode/
+.idea/
+.DS_Store
