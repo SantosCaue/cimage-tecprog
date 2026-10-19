@@ -299,43 +299,40 @@ Matriz *fil_sobel(const Matriz *src, FilStatus *status) {
         gy2 = mat_criar(L, C);
         if (gx2 == NULL || gy2 == NULL) {
             st = FIL_SEM_MEMORIA;
-            goto limpeza;
-        }
-
-        /* preenche gx2[i][j] = gx[i][j]² e gy2[i][j] = gy[i][j]² */
-        for (int i = 0; i < L; i++) {
-            for (int j = 0; j < C; j++) {
-                double a = 0.0, b = 0.0;
-                mat_get(gx, i, j, &a);
-                mat_get(gy, i, j, &b);
-                mat_set(gx2, i, j, a * a);
-                mat_set(gy2, i, j, b * b);
+        } else {
+            /* preenche gx2[i][j] = gx[i][j]² e gy2[i][j] = gy[i][j]² */
+            for (int i = 0; i < L; i++) {
+                for (int j = 0; j < C; j++) {
+                    double a = 0.0, b = 0.0;
+                    mat_get(gx, i, j, &a);
+                    mat_get(gy, i, j, &b);
+                    mat_set(gx2, i, j, a * a);
+                    mat_set(gy2, i, j, b * b);
+                }
             }
-        }
 
-        /* soma matricial: Gx² + Gy² usando mat_somar */
-        soma = mat_somar(gx2, gy2);
-        if (soma == NULL) {
-            st = FIL_SEM_MEMORIA;
-            goto limpeza;
-        }
-
-        /* raiz quadrada elemento a elemento da soma para obter a magnitude */
-        dst = mat_criar(L, C);
-        if (dst == NULL) {
-            st = FIL_SEM_MEMORIA;
-            goto limpeza;
-        }
-        for (int i = 0; i < L; i++) {
-            for (int j = 0; j < C; j++) {
-                double s = 0.0;
-                mat_get(soma, i, j, &s);
-                mat_set(dst, i, j, sqrt(s));
+            /* soma matricial: Gx² + Gy² usando mat_somar */
+            soma = mat_somar(gx2, gy2);
+            if (soma == NULL) {
+                st = FIL_SEM_MEMORIA;
+            } else {
+                /* raiz quadrada elemento a elemento da soma para obter a magnitude */
+                dst = mat_criar(L, C);
+                if (dst == NULL) {
+                    st = FIL_SEM_MEMORIA;
+                } else {
+                    for (int i = 0; i < L; i++) {
+                        for (int j = 0; j < C; j++) {
+                            double s = 0.0;
+                            mat_get(soma, i, j, &s);
+                            mat_set(dst, i, j, sqrt(s));
+                        }
+                    }
+                }
             }
         }
     }
 
-limpeza:
     mat_liberar(kx);
     mat_liberar(ky);
     mat_liberar(gx);
