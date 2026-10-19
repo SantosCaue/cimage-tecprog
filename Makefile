@@ -1,5 +1,5 @@
 
-NAME      := imgedit
+NAME      := cimage
 
 CC        ?= gcc
 AR        ?= ar

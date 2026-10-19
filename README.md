@@ -1,4 +1,4 @@
-# cimage-tecprog (imgedit)
+# cimage-tecprog
 
 Biblioteca modular em C para representação, transformação, processamento e álgebra matricial sobre imagens digitais (em tons de cinza ou RGB).
 
@@ -103,19 +103,19 @@ Processamento sobre matrizes de canal único:
 
 O projeto requer um compilador com suporte a **C11** (como `gcc` ou `clang`) e o utilitário `make`.
 
-### Gerar a biblioteca estática (`libimgedit.a`)
+### Gerar a biblioteca estática (`libcimage.a`)
 ```bash
 make
 # ou:
 make static
 ```
-A biblioteca será gerada em `build/libimgedit.a`.
+A biblioteca será gerada em `build/libcimage.a`.
 
-### Gerar a biblioteca dinâmica (`libimgedit.so`)
+### Gerar a biblioteca dinâmica (`libcimage.so`)
 ```bash
 make shared
 ```
-A biblioteca compartilhada será gerada em `build/libimgedit.so`.
+A biblioteca compartilhada será gerada em `build/libcimage.so`.
 
 ### Modo de depuração (Debug com Sanitizers)
 Compila com `-g -O0` e habilita AddressSanitizer e UndefinedBehaviorSanitizer:
