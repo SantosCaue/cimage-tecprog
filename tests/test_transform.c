@@ -1,172 +1,224 @@
 #include <stdio.h>
-#include "../include/image_transform.h"
-#include "../include/image.h"
+#include <stdlib.h>
+#include "image_transform.h"
+#include "image.h"
 
-void test_cortar_valor_valido (){
-    printf("Teste: Cortar - entrada válida\n");
-    Image *img = img_criar_imagem(100, 100, 3);
-    ImgStatus status = IMG_SUCESSO;
+static int total = 0;
+static int falhas = 0;
 
-    Image *img_cortada = cortar(img, 10, 10, 40, 60, &status);
-    if(status == IMG_SUCESSO && img_cortada != NULL && img_consul_altura(img_cortada) == 40 && img_consul_largura(img_cortada) == 60)
-        printf("Sucesso\n");
-    else
-        printf("Erro\n");
-    
-    if (img_cortada) img_liberar_imagem(img_cortada);
+#define CHECK(cond) do { \
+    total++; \
+    if (!(cond)) { \
+        falhas++; \
+        printf("  FALHOU: %s (linha %d)\n", #cond, __LINE__); \
+    } \
+} while (0)
+
+/* ---------- auxiliares dos testes ---------- */
+
+static int pixel_igual(const unsigned char a[3], const unsigned char b[3], int canais) {
+    for (int c = 0; c < canais; c++) {
+        if (a[c] != b[c]) return 0;
+    }
+    return 1;
+}
+
+/* ---------- testes unitários ---------- */
+
+static void teste_cortar(void) {
+    printf("img_cortar\n");
+
+    /* Imagem 4x4 onde pixel (i, j) = { i * 10 + j, 0, 0 } */
+    Image *img = img_criar_imagem(4, 4, 3);
+    CHECK(img != NULL);
+
+    unsigned char p[3] = {0, 0, 0};
+    for (int i = 0; i < 4; i++) {
+        for (int j = 0; j < 4; j++) {
+            p[0] = (unsigned char)(i * 10 + j);
+            img_escrever_pixel(img, i, j, p);
+        }
+    }
+
+    /* Corte 2x2 a partir da posição (1, 1) */
+    ImgStatus status = IMG_SEM_MEMORIA;
+    Image *corte = img_cortar(img, 1, 1, 2, 2, &status);
+    CHECK(corte != NULL && status == IMG_SUCESSO);
+    CHECK(img_consul_altura(corte) == 2);
+    CHECK(img_consul_largura(corte) == 2);
+    CHECK(img_consul_canal(corte) == 3);
+
+    /* Validação dos pixels cortados */
+    unsigned char esperado[3] = {0, 0, 0};
+    for (int i = 0; i < 2; i++) {
+        for (int j = 0; j < 2; j++) {
+            img_ler_pixel(corte, i, j, p);
+            esperado[0] = (unsigned char)((1 + i) * 10 + (1 + j));
+            CHECK(pixel_igual(p, esperado, 3));
+        }
+    }
+    img_liberar_imagem(corte);
+
+    /* Corte exato de toda a imagem (valor limite) */
+    corte = img_cortar(img, 0, 0, 4, 4, &status);
+    CHECK(corte != NULL && status == IMG_SUCESSO);
+    CHECK(img_consul_altura(corte) == 4 && img_consul_largura(corte) == 4);
+    img_liberar_imagem(corte);
+
+    /* Casos inválidos: corte que ultrapassa limites */
+    status = IMG_SUCESSO;
+    CHECK(img_cortar(img, 3, 3, 2, 2, &status) == NULL && status == IMG_FORA_DA_IMAGEM);
+    status = IMG_SUCESSO;
+    CHECK(img_cortar(img, -1, 0, 2, 2, &status) == NULL && status == IMG_FORA_DA_IMAGEM);
+    status = IMG_SUCESSO;
+    CHECK(img_cortar(img, 0, 0, 0, 2, &status) == NULL && status == IMG_FORA_DA_IMAGEM);
+
+    /* Ponteiro NULL */
+    status = IMG_SUCESSO;
+    CHECK(img_cortar(NULL, 0, 0, 2, 2, &status) == NULL && status == IMG_PONTEIRO_NULL);
+    CHECK(img_cortar(NULL, 0, 0, 2, 2, NULL) == NULL);
+
     img_liberar_imagem(img);
 }
 
-void test_cortar_valor_invalido (){
-    printf("Teste: Cortar - entrada inválida\n");
+static void teste_espelhar_vertical(void) {
+    printf("img_espelhar_vertical\n");
 
-    Image *img = img_criar_imagem(100, 100, 3);
-    ImgStatus status = IMG_SUCESSO;
+    /* Imagem 3x2:
+     * Linha 0: (10, 10, 10)
+     * Linha 1: (20, 20, 20)
+     * Linha 2: (30, 30, 30)
+     */
+    Image *img = img_criar_imagem(2, 3, 3);
+    CHECK(img != NULL);
 
-    Image *img_cortada = cortar(img, 90, 90, 40, 60, &status);
-    if(status == IMG_FORA_DA_IMAGEM && img_cortada == NULL)
-        printf("Sucesso\n");
-    else
-        printf("Erro\n");
+    unsigned char p[3];
+    for (int j = 0; j < 2; j++) {
+        p[0] = p[1] = p[2] = 10; img_escrever_pixel(img, 0, j, p);
+        p[0] = p[1] = p[2] = 20; img_escrever_pixel(img, 1, j, p);
+        p[0] = p[1] = p[2] = 30; img_escrever_pixel(img, 2, j, p);
+    }
 
-    if (img_cortada) img_liberar_imagem(img_cortada);
-    img_liberar_imagem(img);
+    ImgStatus status = IMG_SEM_MEMORIA;
+    Image *esp = img_espelhar_vertical(img, &status);
+    CHECK(esp != NULL && status == IMG_SUCESSO);
+    CHECK(img_consul_largura(esp) == 2);
+    CHECK(img_consul_altura(esp) == 3);
 
-    printf("Teste: Cortar - valor nulo\n");
-    Image *corte_nulo = cortar(NULL, 0, 0, 30, 20, &status);
-    if(status == IMG_PONTEIRO_NULL && corte_nulo == NULL)
-        printf("Sucesso\n");
-    else
-        printf("Erro\n");
-}
+    /* Linha 0 deve ter valor 30, linha 1 valor 20, linha 2 valor 10 */
+    for (int j = 0; j < 2; j++) {
+        img_ler_pixel(esp, 0, j, p); CHECK(p[0] == 30 && p[1] == 30 && p[2] == 30);
+        img_ler_pixel(esp, 1, j, p); CHECK(p[0] == 20 && p[1] == 20 && p[2] == 20);
+        img_ler_pixel(esp, 2, j, p); CHECK(p[0] == 10 && p[1] == 10 && p[2] == 10);
+    }
+    img_liberar_imagem(esp);
 
-void test_cortar_valor_limite(){
-    printf("Teste: Cortar - valor limite\n");
-  
-    Image *img = img_criar_imagem(100, 100, 3);
-    ImgStatus status = IMG_SUCESSO;
+    /* Ponteiro NULL */
+    status = IMG_SUCESSO;
+    CHECK(img_espelhar_vertical(NULL, &status) == NULL && status == IMG_PONTEIRO_NULL);
+    CHECK(img_espelhar_vertical(NULL, NULL) == NULL);
 
-    Image *img_cortada = cortar(img, 0, 0, 100, 100, &status);
-
-    if(status == IMG_SUCESSO && img_cortada != NULL && img_consul_altura(img_cortada) == 100 && img_consul_largura(img_cortada) == 100)
-        printf("Sucesso\n");
-    else
-        printf("Erro\n");
-
-    if (img_cortada) img_liberar_imagem(img_cortada);
-    img_liberar_imagem(img);
-}
-
-void test_espelhar_vertical_entrada_valida(){
-    printf("Teste: espelhar_vertical - entrada válida\n");
-
-    Image *img = img_criar_imagem(100, 100, 3);
-    ImgStatus status = IMG_SUCESSO;
-
-    Image *img_espelhada = espelhar_vertical(img, &status);
-
-    if(status == IMG_SUCESSO && img_espelhada != NULL)
-        printf("Sucesso\n");
-    else
-        printf("Erro\n");
-
-    if (img_espelhada) img_liberar_imagem(img_espelhada);
     img_liberar_imagem(img);
 }
 
-void test_espelhar_vertical_entrada_invalida(){
-    printf("Teste: espelhar_vertical - entrada nula\n");
+static void teste_espelhar_horizontal(void) {
+    printf("img_espelhar_horizontal\n");
 
-    ImgStatus status = IMG_SUCESSO;
+    /* Imagem 2x3:
+     * Coluna 0: (1, 1, 1), Coluna 1: (2, 2, 2), Coluna 2: (3, 3, 3)
+     */
+    Image *img = img_criar_imagem(3, 2, 3);
+    CHECK(img != NULL);
 
-    Image *img_espelhada = espelhar_vertical(NULL, &status);
+    unsigned char p[3];
+    for (int i = 0; i < 2; i++) {
+        p[0] = p[1] = p[2] = 1; img_escrever_pixel(img, i, 0, p);
+        p[0] = p[1] = p[2] = 2; img_escrever_pixel(img, i, 1, p);
+        p[0] = p[1] = p[2] = 3; img_escrever_pixel(img, i, 2, p);
+    }
 
-    if(status == IMG_PONTEIRO_NULL && img_espelhada == NULL)
-        printf("Sucesso\n");
-    else
-        printf("Erro\n");
+    ImgStatus status = IMG_SEM_MEMORIA;
+    Image *esp = img_espelhar_horizontal(img, &status);
+    CHECK(esp != NULL && status == IMG_SUCESSO);
+    CHECK(img_consul_largura(esp) == 3);
+    CHECK(img_consul_altura(esp) == 2);
 
-    if (img_espelhada) img_liberar_imagem(img_espelhada);
-}
+    /* Coluna 0 deve ter valor 3, coluna 1 valor 2, coluna 2 valor 1 */
+    for (int i = 0; i < 2; i++) {
+        img_ler_pixel(esp, i, 0, p); CHECK(p[0] == 3 && p[1] == 3 && p[2] == 3);
+        img_ler_pixel(esp, i, 1, p); CHECK(p[0] == 2 && p[1] == 2 && p[2] == 2);
+        img_ler_pixel(esp, i, 2, p); CHECK(p[0] == 1 && p[1] == 1 && p[2] == 1);
+    }
+    img_liberar_imagem(esp);
 
-void test_espelhar_horizontal_entrada_valida(){
-    printf("Teste: espelhar_horizontal - entrada válida\n");
+    /* Ponteiro NULL */
+    status = IMG_SUCESSO;
+    CHECK(img_espelhar_horizontal(NULL, &status) == NULL && status == IMG_PONTEIRO_NULL);
+    CHECK(img_espelhar_horizontal(NULL, NULL) == NULL);
 
-    Image *img = img_criar_imagem(100, 100, 3);
-    ImgStatus status = IMG_SUCESSO;
-
-    Image *img_espelhada = espelhar_horizontal(img, &status);
-
-    if(status == IMG_SUCESSO && img_espelhada != NULL)
-        printf("Sucesso\n");
-    else
-        printf("Erro\n");
-
-    if (img_espelhada) img_liberar_imagem(img_espelhada);
     img_liberar_imagem(img);
 }
 
-void test_espelhar_horizontal_entrada_invalida(){
-    printf("Teste: espelhar_horizontal - entrada nula\n");
+static void teste_rotacionar(void) {
+    printf("img_rotacionar\n");
 
-    ImgStatus status = IMG_SUCESSO;
+    /* Imagem original 3x2 (largura 3, altura 2):
+     * [ (10,0,0) (20,0,0) (30,0,0) ]
+     * [ (40,0,0) (50,0,0) (60,0,0) ]
+     *
+     * Rotacionada 90° CW (largura 2, altura 3):
+     * [ (40,0,0) (10,0,0) ]
+     * [ (50,0,0) (20,0,0) ]
+     * [ (60,0,0) (30,0,0) ]
+     */
+    Image *img = img_criar_imagem(3, 2, 3);
+    CHECK(img != NULL);
 
-    Image *img_espelhada = espelhar_horizontal(NULL, &status);
+    unsigned char p[3] = {0, 0, 0};
+    p[0] = 10; img_escrever_pixel(img, 0, 0, p);
+    p[0] = 20; img_escrever_pixel(img, 0, 1, p);
+    p[0] = 30; img_escrever_pixel(img, 0, 2, p);
+    p[0] = 40; img_escrever_pixel(img, 1, 0, p);
+    p[0] = 50; img_escrever_pixel(img, 1, 1, p);
+    p[0] = 60; img_escrever_pixel(img, 1, 2, p);
 
-    if(status == IMG_PONTEIRO_NULL && img_espelhada == NULL)
-        printf("Sucesso\n");
-    else
-        printf("Erro\n");
+    ImgStatus status = IMG_SEM_MEMORIA;
+    Image *rot = img_rotacionar(img, &status);
+    CHECK(rot != NULL && status == IMG_SUCESSO);
+    CHECK(img_consul_largura(rot) == 2);
+    CHECK(img_consul_altura(rot) == 3);
 
-    if (img_espelhada) img_liberar_imagem(img_espelhada);
-}
+    /* Valida cada pixel na nova posição rotacionada */
+    img_ler_pixel(rot, 0, 0, p); CHECK(p[0] == 40);
+    img_ler_pixel(rot, 0, 1, p); CHECK(p[0] == 10);
+    img_ler_pixel(rot, 1, 0, p); CHECK(p[0] == 50);
+    img_ler_pixel(rot, 1, 1, p); CHECK(p[0] == 20);
+    img_ler_pixel(rot, 2, 0, p); CHECK(p[0] == 60);
+    img_ler_pixel(rot, 2, 1, p); CHECK(p[0] == 30);
 
-void test_rotacionar_entrada_valida(){
-    printf("Teste: rotacionar - entrada válida\n");
+    img_liberar_imagem(rot);
 
-    Image *img = img_criar_imagem(100, 100, 3);
-    ImgStatus status = IMG_SUCESSO;
+    /* Ponteiro NULL */
+    status = IMG_SUCESSO;
+    CHECK(img_rotacionar(NULL, &status) == NULL && status == IMG_PONTEIRO_NULL);
+    CHECK(img_rotacionar(NULL, NULL) == NULL);
 
-    Image *img_espelhada = rotacionar(img, &status);
-
-    if(status == IMG_SUCESSO && img_espelhada != NULL)
-        printf("Sucesso\n");
-    else
-        printf("Erro\n");
-
-    if (img_espelhada) img_liberar_imagem(img_espelhada);
     img_liberar_imagem(img);
 }
 
-void test_rotacionar_entrada_invalida(){
-    printf("Teste: rotacionar - entrada nula\n");
+/* ---------- main ---------- */
 
-    ImgStatus status = IMG_SUCESSO;
+int main(void) {
+    teste_cortar();
+    teste_espelhar_vertical();
+    teste_espelhar_horizontal();
+    teste_rotacionar();
 
-    Image *img_espelhada = rotacionar(NULL, &status);
-
-    if(status == IMG_PONTEIRO_NULL && img_espelhada == NULL)
-        printf("Sucesso\n");
-    else
-        printf("Erro\n");
-
-    if (img_espelhada) img_liberar_imagem(img_espelhada);
-}
-
-int main(){
-
-    test_cortar_valor_valido();
-    test_cortar_valor_invalido();
-    test_cortar_valor_limite();
-    
-    test_espelhar_vertical_entrada_valida();
-    test_espelhar_vertical_entrada_invalida();
-
-    test_espelhar_horizontal_entrada_valida();
-    test_espelhar_horizontal_entrada_invalida();
-
-    test_rotacionar_entrada_valida();
-    test_rotacionar_entrada_invalida();
-
-    return 0;
+    printf("\n%d verificacoes, %d falhas\n", total, falhas);
+    if (falhas == 0) {
+        printf("RESULTADO: APROVADO\n");
+        return 0;
+    }
+    printf("RESULTADO: FALHOU\n");
+    return 1;
 }
