@@ -151,31 +151,4 @@ Matriz *mat_somar(const Matriz *a, const Matriz *b);
  */
 Matriz *mat_transpor(const Matriz *matriz);
 
-/**
- * @brief Calcula o determinante de uma matriz quadrada.
- *
- * Utiliza eliminação de Gauss com pivotamento parcial sobre uma cópia
- * da matriz, sem modificar a original.
- *
- * @param matriz    Matriz quadrada de entrada.
- * @param resultado Recebe o valor do determinante.
- * @return MAT_SUCESSO em caso de sucesso;
- *         MAT_PONTEIRO_NULL se matriz ou resultado forem NULL;
- *         MAT_NAO_QUADRADA se a matriz não for quadrada;
- *         MAT_SEM_MEMORIA se faltar memória para a cópia de trabalho.
- */
-MatStatus mat_determinante(const Matriz *matriz, double *resultado);
-
-/**
- * @brief Calcula o traço de uma matriz quadrada (soma da diagonal principal).
- *
- * @param matriz    Matriz quadrada de entrada.
- * @param resultado Recebe o valor do traço.
- * @return MAT_SUCESSO em caso de sucesso;
- *         MAT_PONTEIRO_NULL se matriz ou resultado forem NULL;
- *         MAT_NAO_QUADRADA se a matriz não for quadrada.
- */
-MatStatus mat_traco(const Matriz *matriz, double *resultado);
-
-
 #endif
