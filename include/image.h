@@ -15,7 +15,7 @@
 typedef struct Image Image;
 
 /** Códigos de status devolvidos pelas funções do módulo de imagem. */
-typedef enum{
+typedef enum {
     IMG_SUCESSO,               /**< Operação concluída sem erros. */
     IMG_PONTEIRO_NULL,         /**< Um ponteiro obrigatório recebido é NULL. */
     IMG_FORA_DA_IMAGEM,        /**< Linha ou coluna fora dos limites da imagem. */
@@ -23,8 +23,8 @@ typedef enum{
     IMG_ERRO_DE_ARQUIVO,       /**< Falha ao abrir, ler ou escrever um arquivo. */
     IMG_FORMATO_INVALIDO,      /**< Conteúdo do arquivo não é uma imagem em formato suportado. */
     IMG_CANAL_INVALIDO,        /**< Índice de canal negativo ou inexistente na imagem. */
-    IMG_DIMENSAO_INCOMPATIVEL, /**< As matrizes R, G e B não têm o mesmo número de linhas e/ou colunas. */
-}ImgStatus;
+    IMG_DIMENSAO_INCOMPATIVEL  /**< As matrizes R, G e B não têm o mesmo número de linhas e/ou colunas. */
+} ImgStatus;
 
 /**
  * @brief Cria uma imagem com as dimensões e o número de canais indicados.
@@ -39,7 +39,7 @@ typedef enum{
  *         faltar memória.
  * @note A imagem devolvida deve ser liberada com img_liberar_imagem().
  */
-Image *img_criar_imagem(int largura,int altura,int canal);
+Image *img_criar_imagem(int largura, int altura, int canal);
 
 /**
  * @brief Consulta a largura (número de colunas) da imagem.
@@ -47,7 +47,7 @@ Image *img_criar_imagem(int largura,int altura,int canal);
  * @param img Imagem a consultar.
  * @return Largura em pixels, ou 0 se img for NULL.
  */
-int img_consul_largura(const Image *img);//receber valor 0 faz com que a imagem nn entra em img_criar_imagem
+int img_consul_largura(const Image *img);
 
 /**
  * @brief Consulta a altura (número de linhas) da imagem.
@@ -55,7 +55,7 @@ int img_consul_largura(const Image *img);//receber valor 0 faz com que a imagem 
  * @param img Imagem a consultar.
  * @return Altura em pixels, ou 0 se img for NULL.
  */
-int img_consul_altura(const Image *img);//receber valor 0 faz com que a imagem nn entra em img_criar_imagem
+int img_consul_altura(const Image *img);
 
 /**
  * @brief Consulta o número de canais da imagem.
@@ -63,7 +63,7 @@ int img_consul_altura(const Image *img);//receber valor 0 faz com que a imagem n
  * @param img Imagem a consultar.
  * @return 1 (tons de cinza) ou 3 (RGB), ou 0 se img for NULL.
  */
-int img_consul_canal(const Image *img);//receber qualquer valor diferente de 1 ou 3 a imagem nn entra em img_criar_imagem
+int img_consul_canal(const Image *img);
 
 /**
  * @brief Libera a memória de uma imagem.
@@ -86,7 +86,7 @@ void img_liberar_imagem(Image *img);
  *         IMG_FORA_DA_IMAGEM se linha ou coluna estiverem fora dos limites.
  *         Em caso de erro, bytes não é modificado.
  */
-ImgStatus img_ler_pixel(const Image *img,int linha, int coluna,unsigned char bytes[]);
+ImgStatus img_ler_pixel(const Image *img, int linha, int coluna, unsigned char bytes[]);
 
 /**
  * @brief Escreve os componentes de um pixel.
@@ -101,7 +101,6 @@ ImgStatus img_ler_pixel(const Image *img,int linha, int coluna,unsigned char byt
  *         IMG_FORA_DA_IMAGEM se linha ou coluna estiverem fora dos limites.
  *         Em caso de erro, a imagem não é modificada.
  */
-ImgStatus img_escrever_pixel(Image *img,int linha,int coluna,const unsigned char bytes[]);
-
+ImgStatus img_escrever_pixel(Image *img, int linha, int coluna, const unsigned char bytes[]);
 
 #endif

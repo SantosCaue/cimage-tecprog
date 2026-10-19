@@ -123,8 +123,8 @@ static void matriz_para_canal(Image *img, const Matriz *m, int c) {
  * @param status         Código de erro opcional (pode ser NULL).
  * @return Nova imagem com o corte, ou NULL em caso de erro.
  */
-Image *cortar(const Image *img, int linha_inicial, int coluna_inicial,
-              int altura, int largura, ImgStatus *status) {
+Image *img_cortar(const Image *img, int linha_inicial, int coluna_inicial,
+                  int altura, int largura, ImgStatus *status) {
     if (img == NULL) {
         if (status != NULL) *status = IMG_PONTEIRO_NULL;
         return NULL;
@@ -175,7 +175,7 @@ Image *cortar(const Image *img, int linha_inicial, int coluna_inicial,
  * @param status Código de erro opcional (pode ser NULL).
  * @return Nova imagem espelhada verticalmente, ou NULL em caso de erro.
  */
-Image *espelhar_vertical(const Image *img, ImgStatus *status) {
+Image *img_espelhar_vertical(const Image *img, ImgStatus *status) {
     if (img == NULL) {
         if (status != NULL) *status = IMG_PONTEIRO_NULL;
         return NULL;
@@ -250,7 +250,7 @@ Image *espelhar_vertical(const Image *img, ImgStatus *status) {
  * @param status Código de erro opcional (pode ser NULL).
  * @return Nova imagem espelhada horizontalmente, ou NULL em caso de erro.
  */
-Image *espelhar_horizontal(const Image *img, ImgStatus *status) {
+Image *img_espelhar_horizontal(const Image *img, ImgStatus *status) {
     if (img == NULL) {
         if (status != NULL) *status = IMG_PONTEIRO_NULL;
         return NULL;
@@ -325,7 +325,7 @@ Image *espelhar_horizontal(const Image *img, ImgStatus *status) {
  * @param status Código de erro opcional (pode ser NULL).
  * @return Nova imagem rotacionada 90° CW, ou NULL em caso de erro.
  */
-Image *rotacionar(const Image *img, ImgStatus *status) {
+Image *img_rotacionar(const Image *img, ImgStatus *status) {
     if (img == NULL) {
         if (status != NULL) *status = IMG_PONTEIRO_NULL;
         return NULL;

@@ -1,5 +1,6 @@
 #ifndef IMAGE_IO_H
 #define IMAGE_IO_H
+
 #include "image.h"
 
 /**
@@ -28,7 +29,6 @@
  */
 Image *img_carregar_imagem(const char *arquivo, ImgStatus *status);
 
-
 /**
  * @brief Salva uma imagem em arquivo no formato PNG.
  *
@@ -41,8 +41,6 @@ Image *img_carregar_imagem(const char *arquivo, ImgStatus *status);
  *         IMG_PONTEIRO_NULL se img ou arquivo forem NULL;
  *         IMG_ERRO_DE_ARQUIVO se não for possível criar ou escrever o arquivo.
  */
-ImgStatus img_salvar_imagem(const Image *img,const char *arquivo);
-
-
+ImgStatus img_salvar_imagem(const Image *img, const char *arquivo);
 
 #endif
